@@ -2,6 +2,7 @@ import express from 'express';
 import { config } from './config/config.js';
 import createHttpError from 'http-errors';
 import globalErrorHandler from './middlewares/globalErrorHandler.js';
+import userRouter from './user/userRouter.js';
 
 const app = express();
 
@@ -16,6 +17,8 @@ app.get("/", (req, res)=>{
     res.json({message : 'HII'});
 })
 
+
+app.use("/api/users", userRouter);
 
 
 // Gobal Error Handler
