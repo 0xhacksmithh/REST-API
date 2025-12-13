@@ -1,6 +1,10 @@
 import createHttpError from "http-errors";
 import userModel from "./userModel.js";
+import bcrypt from 'bcrypt';
+import jwt from "jsonwebtoken";
+import { config } from "../config/config.js";
 
+const { sign, verify } = jwt;
 
 const createUser = async(req, res, next)=>{
     const { name, email, password } = req.body;
@@ -19,10 +23,20 @@ const createUser = async(req, res, next)=>{
         return next(error);
     }
 
-    // Process
+    // process and Hash password
+    const hashPassword = await bcrypt.hash(password, 10);
+
+    const newUser = await userModel.create({
+        name,
+        email,
+        password: hashPassword,
+    })
+
+    // Token Generation
+    const token = sign({sub: newUser._id}, config.jwtSecret, {expiresIn: "7d"});
 
     // Response
-    res.json({message: "User created"});
+    res.json({acessToken: token});
 };
 
 export { createUser };
