@@ -6,6 +6,8 @@ import userRouter from './user/userRouter.js';
 
 const app = express();
 
+app.use(express.json());
+
 // Routes
 
 app.get("/", (req, res)=>{
