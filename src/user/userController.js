@@ -57,11 +57,52 @@ const createUser = async(req, res, next)=>{
             const token = sign({sub: newUser._id}, config.jwtSecret, {expiresIn: "7d"});
 
     // Response
-    res.json({acessToken: token});
+    res.status(201).json({acessToken: token});
     } catch (error) {
         return next(createHttpError(500, "Error while signing JWT token"));
     };
 
 };
 
-export { createUser };
+const loginUser = async(req, res, next)=>{
+    const {email, password} = req.body;
+
+    if(!email || !password){
+        return next(createHttpError(400, "All Feilds are required"));
+    }
+
+    let user;
+
+    try {
+        user = await userModel.findOne({email});
+        if(!user){
+            return next(createHttpError(404, "User not Found"));
+        }
+    } catch (error) {
+        return next(createHttpError(500, "Database fetching failed"));
+    }
+
+    let isMatch;
+
+    try {
+        isMatch = await bcrypt.compare(password, user.password);
+        if(!isMatch){
+            return next(createHttpError(400, "User Not Matched"));
+        }
+    } catch (error) {
+        return next(createHttpError(500, "Bcrypt Failed"));
+    };
+
+    let token;  
+    try {
+        token = sign({sub: user._id}, config.jwtSecret, {expiresIn: "7d", algorithm: "HS256"});
+    } catch (error) {
+        return next(createHttpError(500, "Acess token creation failed"));
+    }
+
+    res.status(200).send({
+        "AcessToken": token,
+    });
+};
+
+export { createUser, loginUser};
